@@ -19,6 +19,9 @@ app.config(function ($routeProvider) {
 			controller: 'LinechartController',
 			templateUrl: 'views/linechart.html'
 		})
+		.when('/crossfilterdemo', {
+			templateUrl: 'views/crossfilterdemo.html'
+		})
 		.otherwise({
 			redirectTo: '/'
 		});
@@ -26,6 +29,7 @@ app.config(function ($routeProvider) {
 
 
 // TODO: won't find controllers/ProductController.js but defined here it works
+// so move this + other controllers to their own js files
 app.controller('ProductController', ['$scope', function($scope) {
 	
 	$scope.dog = 'img/wowee.jpg';
