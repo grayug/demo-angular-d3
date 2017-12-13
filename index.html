@@ -1,0 +1,72 @@
+<!doctype html>
+
+<html>
+	<head>
+	
+	  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+	  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+	  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+	  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+	  
+	   <script src="https://code.angularjs.org/1.3.11/angular-route.js"></script>
+	  
+	  <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+	  
+	  <!-- d3 -->
+	  <script src="https://d3js.org/d3.v4.min.js"></script>
+
+	  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+	  
+	  <link href="css/main.css" rel="stylesheet" />
+	</head>
+
+	
+	<body ng-app="demoApp">
+	
+	
+	<div class="header">
+		<div class="container">
+			<h1>Demo Store</h1>
+		</div>
+	</div>
+	
+	
+	<div ng-cloak>
+	
+		<md-content class="md-padding">
+		
+			<md-nav-bar
+				md-selected-nav-item="currentNavItem"
+				nav-bar-aria-label="navigation links">
+				
+				<md-nav-item md-nav-href="#product" name="Product">
+					Products
+				</md-nav-item>
+							
+				<md-nav-item md-nav-href="#contact" name="Contact">
+					Contact Us
+				</md-nav-item>
+				
+				<md-nav-item md-nav-href="#linechart" name="Linechart">
+					Line Chart
+				</md-nav-item>
+				
+			</md-nav-bar>
+			
+			<div ng-view></div>
+			
+		</md-content>
+	
+	</div>
+
+
+	</body>
+
+	<!--  Modules -->
+	<script src="js/app.js"></script>
+
+
+	<!-- Controllers -->
+	<script src="js/controllers/MainController.js"></script>
+
+</html>
