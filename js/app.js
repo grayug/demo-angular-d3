@@ -100,7 +100,6 @@ app.controller('LinechartController', ['$scope', function($scope){
 		 
 		  // Scale the range of the data
 		  x.domain(d3.extent(data, function(d) { return d.date; }));
-		  console.log
 		  y.domain([0, d3.max(data, function(d) {
 			  return d.value })]);
 		  
