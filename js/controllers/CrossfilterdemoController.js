@@ -6,8 +6,10 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 	$scope.crossfilterdemoInit = function() {
 		
 		
-		function draw(data) {
-			
+		var colorResult;
+		var alphabetResult;
+		
+		function init(data) {
 			var data = data.data;
 			
 			/* data.forEach(function(d) {
@@ -18,7 +20,7 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 			  
 			 var cf = crossfilter(data);
 			  
-			 var byColor = cf.dimension(function(p) { return p.category1 });
+			 var color = cf.dimension(function(p) { return p.category1 });
 
 			 
 			 /*
@@ -35,15 +37,17 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 			 
 			 
 			
-			var array = byColor.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+			colorResult = color.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
 			
-			for(i = 0; i < array.length;
-			console.log("Sum " + array[0].key + ": " + array[0].value);
-			console.log("Sum " + array[0].key + ": " + array[1].value);
-			console.log("Sum " + array[0].key + ": " + array[2].value);
+			/*for(i = 0; i < array.length; i++) {
+				console.log("Sum of values at color " + array[i].key + ": " + array[i].value);
+			}*/
+			
+			// Do for alphabet
 			 
-			 
-			var byAlphabet = cf.dimension(function(p) { return p.category2 });
+			var alphabet = cf.dimension(function(p) { return p.category2 });
+			
+			alphabetResult = alphabet.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
 
 			function reduceAdd(p, v) {
 				return p + v.value;
@@ -56,70 +60,149 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 			function reduceInitial() {
 				return 0;
 			}
-
 			
+		}
+		
+		function draw(dataset, id) {	
 			
-			// stuff to remove after 
-			var w = 500;
-			var h = 100;
-			var dataset = [ 5, 10, 15, 20, 25 ];
 			var barPadding = 1;
 			
 			
-			var colorDataset = []
-			for(i = 0; i < array.length; i++){
-				colorDataset.push(array[i].value);
-				console.log("111 val = " + array[i].value);
+			// clean dataset for d3
+			var cleanedDataset = [];
+			var categories = [];
+			for(i = 0; i < dataset.length; i++){
+				categories.push(dataset[i].key);
+				cleanedDataset.push(dataset[i].value);
+				console.log("Sum of values at " + dataset[i].key + ": " + dataset[i].value);
 			}
 			
-			
-			/*
-				TODO: Add alphabet reduced result to array, then add here
-			var alphabetDataset = []
-			for(i = 0; i < array.length; i++){
-				colorDataset.push(array[i].value);
-			} */
-			
-			
-			// (d3 placeholder code)
-			//var dataset = [ 5, 10, 13, 19, 21, 25, 22, 18, 15, 13,
-			//				11, 12, 15, 20, 18, 17, 16, 18, 23, 25 ];
-						
-			//Create SVG element
-			
-			// TODO chart
-			var svg = d3.selectAll("body")
-				.selectAll("svg")
-				.attr("width", w)
-				.attr("height", h);
 
-			svg.selectAll("rect")
-			   .data(colorDataset) 
-			   .enter()
-			   .append("rect")
-			   .attr("x", function(d, i) {
-			   return i * (w / colorDataset.length);
-			})
-			.attr("y", function(d) {
-				   return h - (d * 4);
-		   })
-		   .attr("width", w / colorDataset.length - barPadding)
-		   .attr("height", function(d) {
-				   return d * 4;
-		   })
-		   .attr("fill", function(d) {
-				return "rgb(0, 0, " + (d * 10) + ")";
-		   });
-			}
+			//set up svg using margin conventions - we'll need plenty of room on the left for labels
+			// adapting from https://bl.ocks.org/hrecht/f84012ee860cb4da66331f18d588eee3
+			// and http://bl.ocks.org/kiranml1/6872226
+			
+			var margin = {
+				top: 15,
+				right: 25,
+				bottom: 15,
+				left: 60
+			};
+			
 
-		
-		
+			var width = 960 - margin.left - margin.right;
+			var height = 500 - margin.top - margin.bottom;
+				
+				
+			var numTicks = 6;
+			var grid = d3.range(numTicks).map(function(i){
+				return {'x1':0,'y1':0,'x2':0,'y2':500 - margin.top - margin.bottom};
+			});
+
+			var tickVals = grid.map(function(d,i){
+				if(i>0){ return i*50; }
+				else if(i===0){ return "100";}
+			});
+				
+				
+			var svg = d3.select(id).selectAll("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				
+				
+			// get max X
+			var domainMax = d3.max(dataset, function(d) {
+				return d.value;
+			});
+			var domainMax = Math.ceil(domainMax / 50) * 50;
+			
+			var tickSkip = (960 + margin.left + margin.right) / numTicks;
+			
+			// grid lines for ticks
+			var grids = svg.append('g')
+					  .attr('id','grid')
+					  //.attr('transform','translate(0,-10)')
+					  .selectAll('line')
+					  .data(grid)
+					  .enter()
+					  .append('line')
+					  .attr('x1', function(d, i) { return i * tickSkip; })
+					  .attr('y1', function(d){ return d.y1; })
+					  .attr('x2', function(d,i){ return i*tickSkip; })
+					  .attr('y2', function(d){ return d.y2; })
+					  .style('stroke', '#adadad')
+					  .style('stroke-width', '1px');
+					  
+
+			var xScale = d3.scaleLinear()
+				.range([0, width])
+				// TODO range should round to nearest 50 instead of static
+				.domain([0, domainMax]);
+
+			var yScale = d3.scaleBand()
+				.rangeRound([height, 0])
+				.domain(dataset.map(function (d) {
+					return d.key;
+				}));
+
+
+			var yAxis = d3.axisLeft(yScale).tickSize(0);
+			
+			var xAxis = d3.axisBottom(xScale).tickSize(1).tickValues(tickVals);
+
+			var gy = svg.append("g")
+				.attr("class", "yaxis")
+				.call(yAxis);
+				
+			var gx = svg.append("g")
+					 .attr("class", "xaxis")
+					 .attr("transform", "translate(0,470)")
+					 .call(xAxis);
+
+			var bars = svg.selectAll(".bar")
+				.data(cleanedDataset)
+				.enter()
+				.append("g");
+
+			//append rects
+			bars.append("rect")
+				.attr("class", "bar")
+				.attr("y", function (d, i) {
+					return yScale(categories[i]) + 50;
+				})
+				.attr("height", yScale.bandwidth() / 2)
+				.attr("x", 0)
+				.attr("width", function (d, i) {
+					return xScale(cleanedDataset[i]);
+				});
+
+			//add a value label to the right of each bar
+			bars.append("text")
+				.attr("class", "label")
+				//y position of the label is halfway down the bar
+				.attr("y", function (d, i) {
+					return yScale(categories[i]);
+				})
+				//x position is 3 pixels to the right of the bar
+				.attr("x", function (d, i) {
+					return xScale(cleanedDataset[i]) + 3;
+				})
+				.text(function (d, i) {
+					return d[i];
+				});
+		}
 		
 		d3.json("dataCat.json", function(error, data) {
 		  if (error) throw error;
 		  
+		  
+		  init(data);
+		  
 		  // trigger render
-		  draw(data);
+		  draw(colorResult, "#test");
+		  draw(alphabetResult, "#test2");
 		});
 	}
 		
