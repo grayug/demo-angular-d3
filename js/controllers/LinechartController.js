@@ -61,7 +61,7 @@ app.controller('LinechartController', ['$scope', function($scope){
 		  svg.append("path")
 			  .data([data])
 			  .attr("class", "line")
-			  .attr("d", valueline); 
+			  .attr("d", valueline);
 		  // Add the X Axis
 		  svg.append("g")
 			  .attr("transform", "translate(0," + height + ")")

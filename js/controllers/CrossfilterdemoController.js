@@ -8,19 +8,14 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 		
 		var colorResult;
 		var alphabetResult;
+		var colorAlphaResult;
 		
 		function init(data) {
 			var data = data.data;
-			
-			/* data.forEach(function(d) {
-			 // d.category1 = +category1;
-			  //d.category2 = +category2;
-			  d.value = +d.value;
-			}) */
 			  
-			 var cf = crossfilter(data);
+			var cf = crossfilter(data);
 			  
-			 var color = cf.dimension(function(p) { return p.category1 });
+			var color = cf.dimension(function(p) { return p.category1 });
 
 			 
 			 /*
@@ -38,16 +33,21 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 			 
 			
 			colorResult = color.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
-			
-			/*for(i = 0; i < array.length; i++) {
-				console.log("Sum of values at color " + array[i].key + ": " + array[i].value);
-			}*/
+		
 			
 			// Do for alphabet
 			 
 			var alphabet = cf.dimension(function(p) { return p.category2 });
 			
 			alphabetResult = alphabet.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+			
+	
+			// reduce on 2 dimension
+			var colorAlpha = cf.dimension(function(p) { return p.category1 + "/" + p.category2; });
+			
+			colorAlphaResult = colorAlpha.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+			
+			
 
 			function reduceAdd(p, v) {
 				return p + v.value;
@@ -116,10 +116,24 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 			var domainMax = d3.max(dataset, function(d) {
 				return d.value;
 			});
+			// round to nearest 50
 			var domainMax = Math.ceil(domainMax / 50) * 50;
 			
 			var tickSkip = (960 + margin.left + margin.right) / numTicks;
-			
+
+
+			var xScale = d3.scaleLinear()
+				.range([0, width])
+				.domain([0, domainMax]);
+
+			var yScale = d3.scaleBand()
+				.rangeRound([height, 0])
+				.domain(dataset.map(function (d) {
+					return d.key;
+				}));
+				
+
+								
 			// grid lines for ticks
 			var grids = svg.append('g')
 					  .attr('id','grid')
@@ -128,25 +142,12 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 					  .data(grid)
 					  .enter()
 					  .append('line')
-					  .attr('x1', function(d, i) { return i * tickSkip; })
+					  .attr('x1', function(d, i) { console.log("d = " + d.x1 + ", " + d.x2); return tickSkip * i; })
 					  .attr('y1', function(d){ return d.y1; })
-					  .attr('x2', function(d,i){ return i*tickSkip; })
+					  .attr('x2', function(d,i){ return tickSkip * i; })
 					  .attr('y2', function(d){ return d.y2; })
 					  .style('stroke', '#adadad')
 					  .style('stroke-width', '1px');
-					  
-
-			var xScale = d3.scaleLinear()
-				.range([0, width])
-				// TODO range should round to nearest 50 instead of static
-				.domain([0, domainMax]);
-
-			var yScale = d3.scaleBand()
-				.rangeRound([height, 0])
-				.domain(dataset.map(function (d) {
-					return d.key;
-				}));
-
 
 			var yAxis = d3.axisLeft(yScale).tickSize(0);
 			
@@ -161,10 +162,11 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 					 .attr("transform", "translate(0,470)")
 					 .call(xAxis);
 
-			var bars = svg.selectAll(".bar")
+				var bars = svg.selectAll(".bar")
 				.data(cleanedDataset)
 				.enter()
-				.append("g");
+				.append("g")
+
 
 			//append rects
 			bars.append("rect")
@@ -174,9 +176,52 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 				})
 				.attr("height", yScale.bandwidth() / 2)
 				.attr("x", 0)
+				.style("fill", "black")
 				.attr("width", function (d, i) {
 					return xScale(cleanedDataset[i]);
+				})
+				.on('click', function(d,i) {
+					svg.selectAll("rect.bar").style("fill", "grey");
+					d3.select(this).style("fill", "black");
+					
+					
+					var colorAlphaCleaned = [];
+					
+					// use dataset[i].key to find matching vals
+					for(var j = 0; j < colorAlphaResult.length; j++){
+						
+						var key = colorAlphaResult[j].key;
+						// search if current selected key is in "color/alpha" string and change other chart to match the volume
+						if(key.indexOf(dataset[i].key) !== -1){
+							console.log(colorAlphaResult[j].key + " = " + colorAlphaResult[j].value);
+							colorAlphaCleaned.push(colorAlphaResult[j].value);
+						}
+					
+					}
+					
+					var idToSelect;
+					
+					// selected colors, so we want to select alpha
+					if(id === "#test") {
+						idToSelect = "#test2";
+						
+					// vice versa	
+					} else {
+						idToSelect = "#test";
+					}
+					
+					
+					// reset current selected chart
+					d3.select(id).selectAll("svg").selectAll("rect.bar").data(cleanedDataset).transition().duration(1000).attr("width", function(d) { return xScale(d); });
+					
+					// set other chart's data to volume of selected bar
+					d3.select(idToSelect).selectAll("svg").selectAll("rect.bar").style("fill", "black").data(colorAlphaCleaned).transition().duration(1000).attr("width", function(d) { return xScale(d); });
+
+					
 				});
+				
+				
+
 
 			//add a value label to the right of each bar
 			bars.append("text")
@@ -192,6 +237,8 @@ app.controller('CrossfilterdemoController', ['$scope', function($scope){
 				.text(function (d, i) {
 					return d[i];
 				});
+				
+					  
 		}
 		
 		d3.json("dataCat.json", function(error, data) {

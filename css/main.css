@@ -31,12 +31,13 @@ html, body {
 /* for d3 */
 
 
-div.bar {
-    display: inline-block;
+.bar {
+   /* display: inline-block;
     width: 20px;
-    height: 75px;   /* We'll override this later */    
+    height: 75px;   /* We'll override this later 
     margin-right: 2px;
-    background-color: teal;
+    background-color: teal; */
+	cursor: pointer;
 }
 
 .pumpkin {
