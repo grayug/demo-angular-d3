@@ -24,6 +24,10 @@ app.config(function ($routeProvider) {
 			controller: 'CrossfilterdemoController',
 			templateUrl: 'views/crossfilterdemo.html'
 		})
+		.when('/fourbars', {
+			controller: 'FourBarsController',
+			templateUrl: 'views/fourbars.html'
+		})
 		.otherwise({
 			redirectTo: 'views/product.html'
 		});
@@ -31,6 +35,19 @@ app.config(function ($routeProvider) {
 
 
 app.factory('barFactory', function() {
+	
+
+	function reduceAdd(p, v) {
+		return p + v.value;
+	}
+	
+	function reduceRemove(p, v) {
+		return p - v.value;
+	}
+	
+	function reduceInitial() {
+		return 0;
+	}
 	
 	return{
 		
@@ -96,7 +113,13 @@ app.factory('barFactory', function() {
 
 			
 			return svg;
+		},
+		
+		mapReduce: function(dimension) {
+			
+			return dimension.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+			
 		}
-	
 	}
+
 });

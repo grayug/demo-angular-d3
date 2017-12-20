@@ -15,7 +15,8 @@ app.controller('CrossfilterdemoController', ['$scope', 'barFactory', function($s
 		
 		function init(data) {
 			var data = data.data;
-			  
+			var dog = data.data;
+		 
 			var cf = crossfilter(data);
 			  
 			colorDimension = cf.dimension(function(p) { return p.category1 });
