@@ -19,7 +19,7 @@ app.controller('CrossfilterdemoController', ['$scope', 'barFactory', function($s
 		 
 			var cf = crossfilter(data);
 			  
-			colorDimension = cf.dimension(function(p) { return p.category1 });
+			colorDimension = cf.dimension(function(p) { return p["category1"]; });
 
 			 
 			 /*
@@ -100,13 +100,14 @@ app.controller('CrossfilterdemoController', ['$scope', 'barFactory', function($s
 				
 			
 			// get empty chart
-			var svg = barFactory.drawBarChart(id, margin, width, height, xScale, yScale);
+			var svg = barFactory.drawBarChart_old(id, margin, width, height, xScale, yScale);
+
 			
-			
+				console.log(svg);
 			// clean data for d3
 			var cleanedDataset = [];
 			var categories = [];
-			for(i = 0; i < dataset.length; i++){
+			for(var i = 0; i < dataset.length; i++){
 				categories.push(dataset[i].key);
 				cleanedDataset.push(dataset[i].value);
 				console.log("Sum of values at " + dataset[i].key + ": " + dataset[i].value);
@@ -148,9 +149,11 @@ app.controller('CrossfilterdemoController', ['$scope', 'barFactory', function($s
 						idToSelect = "#test2";
 						
 						colorDimension.filter(dataset[i].key);
+						dataset2 = barFactory.cleanData(alphabetResult);
+						/*
 						for(var j = 0; j < dataset.length; j++){
 							dataset2.push(alphabetResult[j].value);
-						}
+						}*/
 					
 						
 					// vice versa	
@@ -158,9 +161,10 @@ app.controller('CrossfilterdemoController', ['$scope', 'barFactory', function($s
 						idToSelect = "#test";
 						
 						alphabetDimension.filter(dataset[i].key);
-						for(var j = 0; j < dataset.length; j++){
+						dataset2 = barFactory.cleanData(colorResult);
+						/*for(var j = 0; j < dataset.length; j++){
 							dataset2.push(colorResult[j].value);
-						}
+						}*/
 					
 					}
 					

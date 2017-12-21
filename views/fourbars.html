@@ -4,8 +4,32 @@
 
 <div ng-init='fourBarsInit()'> 
 
-	<div ng-repeat='dat in data'> 
-
-		{{ dat }} {{$index}}
+	<div ng-repeat='data in reduced'> 
+	
+		<!-- <div id="{{attributes[$index]}}" ng-init='drawChart($index)'>
+			<svg></svg>
+		</div> -->
+		
+		<!-- temporary hack while I try to get above code working -->
+		<div id="color" ng-init='drawChart($index)'>
+			<svg></svg>
+		</div>
+		
+		<div id="letter" ng-init='drawChart($index)'>
+			<svg></svg>
+		</div>
+		
+		<div id="shape" ng-init='drawChart($index)'>
+			<svg></svg>
+		</div>
+		
+		<div id="country" ng-init='drawChart($index)'>
+			<svg></svg>
+		</div>
+		
+		<!-- <svg id="{{attributes[$index]}}" ng-init='drawChart($index)'> </svg> -->
+		
+		<!-- {{attributes[$index]}} -->
+		<!-- {{ data }} {{$index}} -->
 	</div>
 </div>
