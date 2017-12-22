@@ -1,16 +1,15 @@
 <p>fourbars.html</p>
 
-<directive-test> </directive-test>
+<!-- <div ng-init='fourBarsInit()'> 
 
-<div ng-init='fourBarsInit()'> 
-
+	{{ 
 	<div ng-repeat='data in reduced'> 
 	
 		<!-- <div id="{{attributes[$index]}}" ng-init='drawChart($index)'>
 			<svg></svg>
-		</div> -->
+		</div>
 		
-		<!-- temporary hack while I try to get above code working -->
+		<!-- temporary hack while I try to get above code working 
 		<div id="color" ng-init='drawChart($index)'>
 			<svg></svg>
 		</div>
@@ -27,9 +26,18 @@
 			<svg></svg>
 		</div>
 		
-		<!-- <svg id="{{attributes[$index]}}" ng-init='drawChart($index)'> </svg> -->
+		<!-- <svg id="{{attributes[$index]}}" ng-init='drawChart($index)'> </svg> 
 		
-		<!-- {{attributes[$index]}} -->
-		<!-- {{ data }} {{$index}} -->
+		<!-- {{attributes[$index]}} 
+		<!-- {{ data }} {{$index}} 
+	</div> -->
+	
+	<div >
+	<div ng-if="ifLoaded" ng-repeat='attribute in attributes'>
+		<div id='{{attribute}}'>
+			<h1>{{attribute}}</h1>
+			<svg></svg>
+			{{ drawChart($index) }}
+		</div>
 	</div>
-</div>
+	</div>

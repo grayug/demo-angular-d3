@@ -20,10 +20,15 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	$scope.attributes = ["color", "letter", "shape", "country"];
 	$scope.dimensions = [];
 	$scope.reduced = [];
+	$scope.ifLoaded = false;
 	
-	$scope.fourBarsInit = function() {
+	//$scope.fourBarsInit = function() {
+	var init = function() {
 		
+		console.log("in init");
 		d3.json("dataFourCat.json", function(error, data) {
+			
+			console.log("in d3.json");
 			if(error) throw error;
 			
 			$scope.data = data.data;
@@ -45,18 +50,26 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				// (it is)
 				for(var j = 0; j < currentData.length; j++){
 	
-					console.log(currentData[j].key + " = " + currentData[j].value);
+				//	console.log(currentData[j].key + " = " + currentData[j].value);
 				}
 			}
-			
+			$scope.ifLoaded = true;
 		});
+		
+		console.log("leaving init");
 		
 	}
 	
+	
+	// call private init function
+	init();
+	
 	$scope.drawChart = function(index) {
 		
+			console.log("in drawChart (index = " + index + ")");
 			//console.log("Called with index: " + index);
 		
+			//console.log($scope.reduced[index]);
 			var reducedData = $scope.reduced[index];
 
 			// todo: everything up until the factory drawBarChart call can be set to global variables in init 
@@ -129,7 +142,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					
 				
 					var currentDimension = $scope.dimensions[index];
-					console.log(barFactory.mapReduce(currentDimension));
+					//console.log(barFactory.mapReduce(currentDimension));
 					
 					
 					//filter current dimension on selected key
@@ -163,7 +176,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					
 					
 					// reset current selected chart
-					d3.select(idString).selectAll("svg").selectAll("rect.bar").data(cleanedData).transition().duration(1000).attr("width", function(d) { return xScale(d); });
+				//	d3.select(idString).selectAll("svg").selectAll("rect.bar").data(cleanedData).transition().duration(1000).attr("width", function(d) { return xScale(d); });
 					
 					// set other chart's data to volume of selected bar
 					var currentData;
@@ -171,7 +184,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 						
 						// skip current selected chart 
 						if(j === index) {
-							console.log("j = " + j + " and selected index = " + index + " ( " + $scope.attributes[j] + " ) ");
+							//console.log("j = " + j + " and selected index = " + index + " ( " + $scope.attributes[j] + " ) ");
 							continue;
 						} else {
 							var idToSelect = "#" + $scope.attributes[j];
@@ -190,22 +203,25 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 							console.log("trying to select " + idToSelect);
 							
 							currentData = barFactory.cleanData($scope.reduced[j]);
-							
+							//console.log($scope.reduced[j]);
+							var reduced = $scope.reduced[j];
 							for(var k = 0; k < currentData.length; k++){
-								console.log("Current data: " + currentData[k]);
+								console.log("data" + "("+reduced[k].key+"[i=" +k+"]): " + currentData[k]);
 							}
 							
 							
 							// doesn't like the new data for some reason?
 							// fill changes, data doesn't (tho the data looks fine)
-							d3.select(idToSelect).selectAll("svg").selectAll("rect.bar").style("fill", "blue").data(currentData).transition().duration(1000)
-							.attr("width", function(d) { return xScale(d); });
+							d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
+								.data(currentData)
+									.transition()
+									.duration(1000)
+								.style("fill", "blue")
+								.attr("width", function(d) { return xScale(d); });
 						}
 					}
 			});
 			
 	}
-	
-	
 	
 }]);
