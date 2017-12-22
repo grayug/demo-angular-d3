@@ -52,6 +52,8 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	
 				//	console.log(currentData[j].key + " = " + currentData[j].value);
 				}
+				
+				drawChart(i);
 			}
 			$scope.ifLoaded = true;
 		});
@@ -60,11 +62,8 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 		
 	}
 	
-	
-	// call private init function
-	init();
-	
-	$scope.drawChart = function(index) {
+
+	var drawChart = function(index) {
 		
 			console.log("in drawChart (index = " + index + ")");
 			//console.log("Called with index: " + index);
@@ -149,44 +148,22 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					currentDimension.filter(reducedData[i].key);
 				//	console.log(reducedData[i].key);
 					
-					// update data ???
 					
-					// selected colors, so we want to select alpha
 					
-					// really bad hardcode/hack for filtering, working on fixing this rn!
-					/*if(id === "#test") {
-						idToSelect = "#test2";
-						
-						colorDimension.filter(dataset[i].key);
-						for(var j = 0; j < dataset.length; j++){
-							dataset2.push(alphabetResult[j].value);
-						}
-					
-						
-					// vice versa	
-					} else {
-						idToSelect = "#test";
-						
-						alphabetDimension.filter(dataset[i].key);
-						for(var j = 0; j < dataset.length; j++){
-							dataset2.push(colorResult[j].value);
-						}
-					
-					}*/
 					
 					
 					// reset current selected chart
 				//	d3.select(idString).selectAll("svg").selectAll("rect.bar").data(cleanedData).transition().duration(1000).attr("width", function(d) { return xScale(d); });
 					
-					// set other chart's data to volume of selected bar
+					// set all chart's data to volume of selected bar
 					var currentData;
 					for(var j = 0; j < $scope.attributes.length; j++) {
 						
 						// skip current selected chart 
-						if(j === index) {
+					/*	if(j === index) {
 							//console.log("j = " + j + " and selected index = " + index + " ( " + $scope.attributes[j] + " ) ");
 							continue;
-						} else {
+						} else { */
 							var idToSelect = "#" + $scope.attributes[j];
 							
 							currentData = [];
@@ -199,10 +176,28 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 								console.log(currentData[k].key + " = " + currentData[k].value);
 							}
 							*/
+							var reduced = $scope.reduced[j];
 							
 							console.log("trying to select " + idToSelect);
-							
-							currentData = barFactory.cleanData($scope.reduced[j]);
+						
+							// set other elements to zero
+							if(j === index) {
+								for(var k = 0; k < $scope.reduced[j].length; k++){
+									// if we hit the current selected bar, leave it as is
+									if(k === i){
+										currentData[k] = reduced[k].value;
+									} 
+									
+									// otherwise set to zero
+									else {
+										currentData[k] = 0;
+									}
+								}
+							} 
+							// for every other chart than the one we're on
+							else {	
+								currentData = barFactory.cleanData($scope.reduced[j]);
+							}
 							//console.log($scope.reduced[j]);
 							var reduced = $scope.reduced[j];
 							for(var k = 0; k < currentData.length; k++){
@@ -217,11 +212,15 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 									.transition()
 									.duration(1000)
 								.style("fill", "blue")
-								.attr("width", function(d) { return xScale(d); });
-						}
+								.attr("width", function(d) {return xScale(d); });
+					//	}
 					}
+					console.log("--------------------------------");
 			});
 			
 	}
+	
+	// call private init function
+	init();
 	
 }]);

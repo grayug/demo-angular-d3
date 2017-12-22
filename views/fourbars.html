@@ -33,11 +33,10 @@
 	</div> -->
 	
 	<div >
-	<div ng-if="ifLoaded" ng-repeat='attribute in attributes'>
+	<div  ng-repeat='attribute in attributes'>
 		<div id='{{attribute}}'>
 			<h1>{{attribute}}</h1>
 			<svg></svg>
-			{{ drawChart($index) }}
 		</div>
 	</div>
 	</div>
