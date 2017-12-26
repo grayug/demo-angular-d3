@@ -18,18 +18,27 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	
 	// attributes in json
 	$scope.attributes = ["color", "letter", "shape", "country"];
-	$scope.dimensions = [];
-	$scope.reduced = [];
+	//$scope.dimensions;
+	//$scope.reduced;
 	$scope.ifLoaded = false;
 	
 	//$scope.fourBarsInit = function() {
 	var init = function() {
 		
-		console.log("in init");
+		$scope.dimensions = [];
+		$scope.reduced = [];
+		
 		d3.json("dataFourCat.json", function(error, data) {
 			
 			console.log("in d3.json");
 			if(error) throw error;
+			
+			// reset dimensions and reduced in case of re-init
+			while ($scope.dimensions.length) { $scope.dimensions.pop(); }
+			while ($scope.reduced .length) { $scope.reduced.pop(); }
+			$scope.dimensions.length = 0;
+			$scope.reduced.length = 0;
+			$scope.ifLoaded = false;
 			
 			$scope.data = data.data;
 			var cf = crossfilter($scope.data);
@@ -57,8 +66,6 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			}
 			$scope.ifLoaded = true;
 		});
-		
-		console.log("leaving init");
 		
 	}
 	
@@ -143,84 +150,92 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					var currentDimension = $scope.dimensions[index];
 					//console.log(barFactory.mapReduce(currentDimension));
 					
+					//var reduced
+					for(var k = 0; k < reducedData.length; k++){
+						console.log("reduced (before filter): " + reducedData[k].value);
+					}
 					
 					//filter current dimension on selected key
 					currentDimension.filter(reducedData[i].key);
 				//	console.log(reducedData[i].key);
 					
+									
+						
 					
-					
-					
+					//var reduced = $scope.reduced[i];
 					
 					// reset current selected chart
-				//	d3.select(idString).selectAll("svg").selectAll("rect.bar").data(cleanedData).transition().duration(1000).attr("width", function(d) { return xScale(d); });
+					//	d3.select(idString).selectAll("svg").selectAll("rect.bar").data(cleanedData).transition().duration(1000).attr("width", function(d) { return xScale(d); });
 					
 					// set all chart's data to volume of selected bar
 					var currentData;
 					for(var j = 0; j < $scope.attributes.length; j++) {
 						
 						// skip current selected chart 
-					/*	if(j === index) {
-							//console.log("j = " + j + " and selected index = " + index + " ( " + $scope.attributes[j] + " ) ");
-							continue;
-						} else { */
-							var idToSelect = "#" + $scope.attributes[j];
-							
-							currentData = [];
-							
-							/*
-							var currentData = $scope.reduced[j];
-							
-							for(var k = 0; k < currentData.length; k++){
-
-								console.log(currentData[k].key + " = " + currentData[k].value);
-							}
-							*/
-							var reduced = $scope.reduced[j];
-							
-							console.log("trying to select " + idToSelect);
+						var idToSelect = "#" + $scope.attributes[j];
 						
-							// set other elements to zero
-							if(j === index) {
-								for(var k = 0; k < $scope.reduced[j].length; k++){
-									// if we hit the current selected bar, leave it as is
-									if(k === i){
-										currentData[k] = reduced[k].value;
-									} 
-									
-									// otherwise set to zero
-									else {
-										currentData[k] = 0;
-									}
+						currentData = [];
+						
+						var reduced = $scope.reduced[j];
+						
+						console.log("selecting " + idToSelect);
+						
+						for(var k = 0; k < reduced.length; k++){
+						console.log("reduced (after filter): " + reduced[k].value);
+						}
+					
+						// set other elements to zero
+						if(j === index) {
+							for(var k = 0; k < $scope.reduced[j].length; k++){
+								// if we hit the current selected bar, leave it as is
+								if(k === i){
+									currentData[k] = reduced[k].value;
+								} 
+								
+								// otherwise set to zero
+								else {
+									currentData[k] = 0;
+									reduced[k].value = 0;
+							//	($scope.reduced[j])[k].value = 0;
 								}
-							} 
-							// for every other chart than the one we're on
-							else {	
-								currentData = barFactory.cleanData($scope.reduced[j]);
 							}
-							//console.log($scope.reduced[j]);
-							var reduced = $scope.reduced[j];
-							for(var k = 0; k < currentData.length; k++){
-								console.log("data" + "("+reduced[k].key+"[i=" +k+"]): " + currentData[k]);
+						} 
+						// for every other chart than the one we're on, update the data 
+						else {	
+							//currentData = barFactory.cleanData($scope.reduced[j]);
+							for(var k = 0; k < $scope.reduced[j].length; k++){
+								currentData[k] = reduced[k].value;
 							}
-							
-							
-							// doesn't like the new data for some reason?
-							// fill changes, data doesn't (tho the data looks fine)
-							d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
-								.data(currentData)
-									.transition()
-									.duration(1000)
-								.style("fill", "blue")
-								.attr("width", function(d) {return xScale(d); });
-					//	}
-					}
-					console.log("--------------------------------");
+						}
+						//console.log($scope.reduced[j]);
+						//var reduced = $scope.reduced[j];
+						for(var k = 0; k < currentData.length; k++){
+							console.log("data" + "("+reduced[k].key+"[i=" +k+"]): " + currentData[k]);
+						}
+						
+
+						d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
+							.data(currentData)
+								.transition()
+								.duration(1000)
+							.style("fill", "blue")
+							.attr("width", function(d) {return xScale(d); });
+				}
+				console.log("--------------------------------");
 			});
 			
 	}
 	
+	
+	
 	// call private init function
+	$scope.reset = function()
+	{
+		init(); 
+		// ^ TODO
+		// don't let drawChart be called in init, it's adding a seperate 'g' append to each chart (s.t. they can't be selected/modified after reset)
+		// select all charts by index and update data to reset reduced dataset instead
+	}
 	init();
 	
 }]);
