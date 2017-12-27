@@ -33,11 +33,14 @@
 	</div> -->
 	
 	<div>
-		<p class="reset" ng-click="reset()">TODO</p>
+		<md-button class="md-warn md-raised" ng-click="reset()" type="button">Reset</md-button>
 		<div  ng-repeat='attribute in attributes'>
 			<div id='{{attribute}}'>
 				<h1>{{attribute}}</h1>
 				<svg></svg>
 			</div>
 		</div>
+		<md-button class="md-warn md-raised" ng-click="reset()" type="button">Reset</md-button>
+		<br><span ng-bind="filteredOnString"></span>
 	</div>
+	
