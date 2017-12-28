@@ -40,12 +40,6 @@ html, body {
 	cursor: pointer;
 }
 
-.pumpkin {
-    fill: yellow;
-    stroke: orange;
-    stroke-width: 5;
- }
- 
  .reset {
    background: #F65A5B ;
  color: #fff;
@@ -63,3 +57,24 @@ html, body {
    transition: background 500ms;
 }
 
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 60px;					
+    height: 28px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+
+/* doesn't work within an ng-view, apparently */
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  width: 100%;
+}

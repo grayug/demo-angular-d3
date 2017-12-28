@@ -33,14 +33,20 @@
 	</div> -->
 	
 	<div>
-		<md-button class="md-warn md-raised" ng-click="reset()" type="button">Reset</md-button>
+		<div class="sticky">
+			<md-button class="md-warn md-raised" ng-click="reset()" type="button">Reset</md-button>
+			<md-button class="md-primary md-raised" ng-click="test()" type="button">Update Filteredon</md-button>
+		</div>
 		<div  ng-repeat='attribute in attributes'>
-			<div id='{{attribute}}'>
-				<h1>{{attribute}}</h1>
-				<svg></svg>
+			<!-- https://stackoverflow.com/questions/27211799/angular-ng-repeat-add-bootstrap-row-every-3-or-4-cols -->
+			<div class="clearfix" ng-if="$even"></div>
+			<div class="col-xs-5">
+				<div id='{{attribute}}'>
+					<h1>{{attribute}}</h1>
+					<h3>Filtered on:{{filteredOn[$index]}}</h3>
+					<svg></svg>
+				</div>
 			</div>
 		</div>
-		<md-button class="md-warn md-raised" ng-click="reset()" type="button">Reset</md-button>
-		<br><span ng-bind="filteredOnString"></span>
 	</div>
 	

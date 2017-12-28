@@ -21,8 +21,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	//$scope.dimensions;
 	//$scope.reduced;
 	$scope.ifLoaded = false;
-	$scope.filteredOn = [];
-	$scope.filteredOnString = "Filtered on:\n\tNothing yet!";
+	$scope.filteredOn = ["", "", "", ""];
 	
 	//$scope.fourBarsInit = function() {
 	var init = function(updateChart) {
@@ -55,7 +54,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				//$scope.dimensions.push(cf.dimension(function(p) { console.log("yo"); console.log("dimension of " + p[$scope.attributes[i]]); return p[$scope.attributes[i]]; }));
 			
 				$scope.reduced.push(barFactory.mapReduce($scope.dimensions[i]));
-				$scope.filteredOn[i] = "chart " + $scope.attributes[i] + ":";
+				//$scope.filteredOn[i] = "chart " + $scope.attributes[i] + ":";
 				
 				// testing if the reduced array is set properly 
 				var currentData = $scope.reduced[i];
@@ -78,8 +77,8 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 							.duration(1000)
 						.style("fill", "black")						
 						.attr("width", function(d) {return $scope.xScale(d); });		
-						$scope.filteredOnString = "";
-						$scope.filteredOn.length = 0;
+						//$scope.filteredOnString = "";
+						$scope.filteredOn = ["", "", "", ""];
 				}
 				// first time drawing chart 
 				else {		
@@ -108,8 +107,8 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				left: 60
 			};
 			
-			var width = 960 - margin.left - margin.right;
-			var height = 500 - margin.top - margin.bottom;
+			var width = 800 - margin.left - margin.right;
+			var height = 450 - margin.top - margin.bottom;
 			
 			
 			// get max X
@@ -145,6 +144,12 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				cleanedData.push(reducedData[i].value);
 			//	console.log("(i = " + i + ") Sum of values at " + reducedData[i].key + ": " + reducedData[i].value);
 			}
+	
+			// div for tooltip -- this can be added to barFactory's drawBarChart later 
+			// tooltip code and mouseover events adapted from http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+			var div = d3.select(idString).append("div")
+				.attr("class", "tooltip")				
+				.style("opacity", 0);
 			
 			// draw bars
 			var bars = svg.selectAll(".bar")
@@ -165,6 +170,23 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				.attr("width", function (d, i) {
 					return xScale(cleanedData[i]);
 				})
+				.on("mouseover", function(d, i) {		
+					var currentDimension = $scope.dimensions[index];
+					var reduced = $scope.reduced[index];
+					div.transition()		
+						.duration(200)		
+						.style("opacity", .9);		
+					// $scope.reduced(index)[i].key ??
+					div.html("Category: " + reduced[i].key + "<br/>" + "Members: " + reduced[i].value + "<br/>")
+					// get this bar's location and place it there?
+						.style("left", 100 + "px")		
+						.style("top", 100 + "px");	
+					})					
+				.on("mouseout", function(d) {		
+					div.transition()		
+						.duration(500)		
+						.style("opacity", 0);	
+				}) 
 				.on('click', function(d,i) {
 					svg.selectAll("rect.bar").style("fill", "grey");
 					d3.select(this).style("fill", "black");
@@ -201,7 +223,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 						console.log("reduced (after filter): " + reduced[k].value);
 						}
 					
-						// set other elements to zero
+						// set other elements to zero 
 					/*	if(j === index) {
 							for(var k = 0; k < $scope.reduced[j].length; k++){
 								// if we hit the current selected bar, leave it as is
@@ -221,22 +243,23 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 						} 
 						// for every other chart than the one we're on, update the data 
 						else {	*/
-							//currentData = barFactory.cleanData($scope.reduced[j]);
-							for(var k = 0; k < $scope.reduced[j].length; k++){
-								currentData[k] = reduced[k].value;
-							}
-							
-							// To tell which chart is filtered on what, working on getting this working (well) still...
-							if(j != index) {
-								$scope.filteredOn[j] += " " + $scope.attributes[index];
-							}
-							console.log("filtered on: " + $scope.filteredOn);
-							
-							// filteredOnString doesn't update in the view when this is updated
-							// but it will when we press the reset button...
-							//$scope.updateFilteredOnString($scope.filteredOn.toString()); 
-								$scope.filteredOnString = $scope.filteredOn.toString();
-					//	}
+						//currentData = barFactory.cleanData($scope.reduced[j]);
+						for(var k = 0; k < $scope.reduced[j].length; k++){
+							currentData[k] = reduced[k].value;
+						}
+						
+						// To tell which chart is filtered on what, working on getting this working (well) still...
+						if(j != index) {
+							$scope.filteredOn[j] += " " + $scope.attributes[index] + "(" + reducedData[i].key + ");";
+						}
+						console.log("filtered on: " + $scope.filteredOn);
+						
+						// filteredOnString doesn't update in the view when this is updated
+						// but it will when we press the reset button...
+						//$scope.updateFilteredOnString($scope.filteredOn.toString()); 
+						//$scope.filteredOnString = $scope.filteredOn.toString();
+						$scope.test();
+
 
 						for(var k = 0; k < currentData.length; k++){
 							console.log("data" + "("+reduced[k].key+"[i=" +k+"]): " + currentData[k]);
@@ -254,6 +277,20 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				console.log("--------------------------------");
 			});
 			
+			var text = svg.selectAll(".text")
+							.data($scope.filteredOn)
+							.enter()
+							.append("g")
+							.attr('x', 129)
+							.attr('y', 150)
+							.attr('fill', '#000')
+							.text(function(d) { return d});
+			
+	}
+	
+	$scope.test = function() {
+		//$scope.filteredOnString = "test!";
+		console.log("test");
 	}
 	
 
@@ -265,6 +302,9 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 		// don't let drawChart be called in init, it's adding a seperate 'g' append to each chart (s.t. they can't be selected/modified after reset)
 		// select all charts by index and update data to reset reduced dataset instead
 	}
-	init(false);
 	
+	
+	/* call private init on controller (page) load */
+	init(false);
+
 }]);
