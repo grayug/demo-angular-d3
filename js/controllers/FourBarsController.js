@@ -25,7 +25,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 		bottom: 15,
 		left: 60
 	};	
-	var width = 800  - margin.left - margin.right;
+	var width = 850  - margin.left - margin.right;
 	var height = 500 - margin.top - margin.bottom;
 	
 	var domainMax;
@@ -35,7 +35,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	// attributes in json
 	$scope.attributes = ["color", "letter", "shape", "country"];
 	// default
-	$scope.selected = "members";
+	$scope.selected = "funds";
 	//$scope.reduced;
 	$scope.ifLoaded = false;
 	$scope.filteredOn = ["", "", "", ""];
