@@ -37,17 +37,6 @@ app.config(function ($routeProvider) {
 app.factory('barFactory', function() {
 	
 
-	function reduceAdd(p, v) {
-		return p + v.members;
-	}
-	
-	function reduceRemove(p, v) {
-		return p - v.members;
-	}
-	
-	function reduceInitial() {
-		return 0;
-	}
 	
 	return{
 		
@@ -85,7 +74,7 @@ app.factory('barFactory', function() {
 
 								
 			// grid lines for ticks
-			var grids = svg.append('g')
+		/*	var grids = svg.append('g')
 					  .attr('id','grid')
 					  //.attr('transform','translate(0,-10)')
 					  .selectAll('line')
@@ -97,11 +86,14 @@ app.factory('barFactory', function() {
 					  .attr('x2', function(d,i){ return tickSkip * i; })
 					  .attr('y2', function(d){ return d.y2; })
 					  .style('stroke', '#adadad')
-					  .style('stroke-width', '1px');
+					  .style('stroke-width', '1px');*/
 
 			var yAxis = d3.axisLeft(yScale).tickSize(0);
 			
-			var xAxis = d3.axisBottom(xScale).tickSize(1).tickValues(tickVals);
+			var xAxis = d3.axisBottom(xScale).tickSize(1).tickSizeInner(-height);
+
+			
+		//	.style( { 'stroke' : 'black', 'stroke-width' : '1px');
 
 			var gy = svg.append("g")
 				.attr("class", "yaxis")
@@ -115,63 +107,7 @@ app.factory('barFactory', function() {
 			
 			return svg;
 		},
-
-		// old is actually the right one being used by bother crossfilterdemo and fourbars, just haven't renamed it :^)
-		drawBarChart: function(margin, width, height, xScale, yScale) {
-			
-			var numTicks = 6;
-			var grid = d3.range(numTicks).map(function(i){
-				return {'x1':0,'y1':0,'x2':0,'y2':500 - margin.top - margin.bottom};
-			});
-
-			var tickVals = grid.map(function(d,i){
-				if(i>0){ return i*50; }
-				else if(i===0){ return "100";}
-			});
-				
-				
-			var svg = d3.select("body").selectAll("svg")
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
-				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-				
-				
-			var tickSkip = (960 + margin.left + margin.right) / numTicks;
-
-								
-			// grid lines for ticks
-			var grids = svg.append('g')
-					  .attr('id','grid')
-					  //.attr('transform','translate(0,-10)')
-					  .selectAll('line')
-					  .data(grid)
-					  .enter()
-					  .append('line')
-					  .attr('x1', function(d, i) { console.log("d = " + d.x1 + ", " + d.x2); return tickSkip * i; })
-					  .attr('y1', function(d){ return d.y1; })
-					  .attr('x2', function(d,i){ return tickSkip * i; })
-					  .attr('y2', function(d){ return d.y2; })
-					  .style('stroke', '#adadad')
-					  .style('stroke-width', '1px');
-
-			var yAxis = d3.axisLeft(yScale).tickSize(0);
-			
-			var xAxis = d3.axisBottom(xScale).tickSize(1).tickValues(tickVals);
-
-			var gy = svg.append("g")
-				.attr("class", "yaxis")
-				.call(yAxis);
-				
-			var gx = svg.append("g")
-					 .attr("class", "xaxis")
-					 .attr("transform", "translate(0,470)")
-					 .call(xAxis);
-
-			
-			return svg;
-		},
-		
+	
 		// returns key,value pair reduced data as an array of just the values for use with d3
 		cleanData: function(data) {
 			
@@ -184,8 +120,21 @@ app.factory('barFactory', function() {
 			return cleanedData;
 		},
 		
-		mapReduce: function(dimension) {
+		// where xaxis is a string, so we can have n differnt x-axes 
+		reduce: function(dimension, xAxis) {
 			
+			function reduceAdd(p, v) {
+				return p + v[xAxis];
+			}
+
+			function reduceRemove(p, v) {
+				return p - v[xAxis];
+			}
+
+			function reduceInitial() {
+				return 0;
+			}
+				
 			return dimension.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
 			
 		}
