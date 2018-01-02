@@ -72,22 +72,6 @@ app.factory('barFactory', function() {
 				
 			var tickSkip = (960 + margin.left + margin.right) / numTicks;
 
-								
-			// grid lines for ticks
-		/*	var grids = svg.append('g')
-					  .attr('id','grid')
-					  //.attr('transform','translate(0,-10)')
-					  .selectAll('line')
-					  .data(grid)
-					  .enter()
-					  .append('line')
-					  .attr('x1', function(d, i) { return tickSkip * i; })
-					  .attr('y1', function(d){ return d.y1; })
-					  .attr('x2', function(d,i){ return tickSkip * i; })
-					  .attr('y2', function(d){ return d.y2; })
-					  .style('stroke', '#adadad')
-					  .style('stroke-width', '1px');*/
-
 			var yAxis = d3.axisLeft(yScale).tickSize(0);
 			
 			var xAxis = d3.axisBottom(xScale).tickSize(1).tickSizeInner(-height);
@@ -108,31 +92,43 @@ app.factory('barFactory', function() {
 			return svg;
 		},
 	
-		// returns key,value pair reduced data as an array of just the values for use with d3
-		cleanData: function(data) {
+		// returns key,value{object, object} reduced data as an array of just values for d3 
+		cleanData: function(data, domain) {
 			
 			var cleanedData = [];
 			for(var i = 0; i < data.length; i++){
-				cleanedData.push(data[i].value);
-				console.log("(i = " + i + ") Sum of values at " + data[i].key + ": " + data[i].value);
+				cleanedData.push(data[i].value[domain]);
+				console.log("(i = " + i + ") Sum of values at " + data[i].key + ": " + data[i].value[domain]);
 			}
 			
 			return cleanedData;
 		},
 		
-		// where xaxis is a string, so we can have n differnt x-axes 
-		reduce: function(dimension, xAxis) {
+		// pass array instead of nothing
+		reduce: function(dimension, domain) {
 			
 			function reduceAdd(p, v) {
-				return p + v[xAxis];
+
+				for(var i = 0; i < domain.length; i++) {
+					p[domain[i]] = p[domain[i]] + v[domain[i]];
+				}
+			//	p.members = p.members + v.members;
+			//	p.funds = p.funds + v.funds;
+				
+				return p;
 			}
 
 			function reduceRemove(p, v) {
-				return p - v[xAxis];
+				
+				for(var i = 0; i < domain.length; i++) {
+					p[domain[i]] = p[domain[i]] - v[domain[i]];
+				}
+			
+				return p;
 			}
 
 			function reduceInitial() {
-				return 0;
+			return {members: 0, funds: 0};
 			}
 				
 			return dimension.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();

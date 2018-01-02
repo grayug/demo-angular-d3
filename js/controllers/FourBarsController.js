@@ -28,17 +28,17 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	var width = 850  - margin.left - margin.right;
 	var height = 500 - margin.top - margin.bottom;
 	
-	var domainMax;
-	var domainMaxRounded;
+	var domainMax = [];
+	var domainMaxRounded = [];
 	
 	
 	// attributes in json
 	$scope.attributes = ["color", "letter", "shape", "country"];
 	// default
 	$scope.selected = "funds";
-	//$scope.reduced;
 	$scope.ifLoaded = false;
 	$scope.filteredOn = ["", "", "", ""];
+	$scope.domains = ["members", "funds"];
 	$scope.data;
 	
 	//$scope.fourBarsInit = function() {
@@ -76,7 +76,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				//tempDimensions.push(dimension
 				//$scope.dimensions.push(cf.dimension(function(p) { console.log("yo"); console.log("dimension of " + p[$scope.attributes[i]]); return p[$scope.attributes[i]]; }));
 			
-				$scope.reduced.push(barFactory.reduce($scope.dimensions[i], $scope.selected));
+				$scope.reduced.push(barFactory.reduce($scope.dimensions[i], $scope.domains));//, $scope.selected));
 				//$scope.filteredOn[i] = "chart " + $scope.attributes[i] + ":";
 				
 				// testing if the reduced array is set properly 
@@ -88,55 +88,48 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				//	console.log(currentData[j].key + " = " + currentData[j].value);
 			//	}
 			
-				var data = barFactory.cleanData(currentData);
+				console.log(currentData);
+				var data = barFactory.cleanData(currentData, $scope.selected);
 				console.log("in init: bar factory cleaned: " + data);
-				
-				// moved down below domainMax calc
-				/*if(updateChart) {
-					var idToSelect = "#" + $scope.attributes[i];
-				//	d3.select(id).selectAll("svg").selectAll("rect.bar").data(cleanedDataset).transition().duration(1000).attr("width", function(d) { return xScale(d); });
-					d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
-						.data(barFactory.cleanData(currentData))
-							.transition()
-							.duration(1000)
-						.style("fill", "black")						
-						.attr("width", function(d) {return $scope.xScale(d); });		
-						//$scope.filteredOnString = "";
-						$scope.filteredOn = ["", "", "", ""];
-				}
-				// first time drawing chart 
-				else {		
-					drawChart(i);
-				} */
 			}
 			
-			//var temp_cf = crossfilter($scope.data);
+
+			// for getting max vals 
 			var temp = [];
-			for(i = 0; i < $scope.attributes.length; i++) {
-				var current = $scope.reduced[i];
-				for(j = 0; j < current.length; j++) {
-					temp.push(current[j].value);
+				for(i = 0; i < $scope.attributes.length; i++) {
+					var current = $scope.reduced[i];
+					for(j = 0; j < current.length; j++) {
+						temp.push(current[j].value);
+					}
 				}
+			
+	//		console.log(temp);
+			
+			$scope.domainMax = [];
+			$scope.domainMaxRounded = [];
+			
+			
+			for(var j = 0; j < $scope.domains.length; j++) {
+				
+
+				// get max X
+				domainMax[$scope.domains[j]] = d3.max(temp, function(d) {
+					return d[$scope.domains[j]];
+				});
+				
+				// round to nearest 50
+				domainMaxRounded[$scope.domains[j]] = Math.ceil(domainMax[$scope.domains[j]] / 50) * 50;
 			}
-			
-			console.log(temp);
-			
-			// get max X
-			domainMax = d3.max(temp, function(d) {
-				return d;
-			});
-			// round to nearest 50
-			domainMaxRounded = Math.ceil(domainMax / 50) * 50;
-			console.log("max = " + domainMax + " rounded up = " + domainMaxRounded);
+			console.log(domainMax);
+			console.log(domainMaxRounded);
 			
 			for(i = 0; i < $scope.attributes.length; i++) {
 				if(updateChart) {
 					var currentData = $scope.reduced[i];
-					var data = barFactory.cleanData(currentData);
+					var data = barFactory.cleanData(currentData, $scope.selected);
 					var idToSelect = "#" + $scope.attributes[i];
-				//	d3.select(id).selectAll("svg").selectAll("rect.bar").data(cleanedDataset).transition().duration(1000).attr("width", function(d) { return xScale(d); });
 					d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
-						.data(barFactory.cleanData(currentData))
+						.data(data)
 							.transition()
 							.duration(1000)
 						.style("fill", "black")						
@@ -168,7 +161,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				
 			var xScale = d3.scaleLinear()
 				.range([0, width])
-				.domain([0, domainMaxRounded]);
+				.domain([0, domainMaxRounded[$scope.selected]]);
 			$scope.xScale = xScale;
 
 			var yScale = d3.scaleBand()
@@ -188,8 +181,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			var categories = [];
 			for(i = 0; i < reducedData.length; i++){
 				categories.push(reducedData[i].key);
-				cleanedData.push(reducedData[i].value);
-			//	console.log("(i = " + i + ") Sum of values at " + reducedData[i].key + ": " + reducedData[i].value);
+				cleanedData.push(reducedData[i].value[$scope.selected]);
 			}
 	
 			// div for tooltip -- this can be added to barFactory's drawBarChart later 
@@ -218,31 +210,17 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					return xScale(cleanedData[i]);
 				})
 				.on("mouseover", function(d, i) {		
-					var reducedFunds = [];
-					var reducedMembers = [];
-					
-					for(var j = 0; j < $scope.attributes.length; j++){
-						reducedFunds.push(barFactory.reduce($scope.dimensions[j], "funds"));
-						reducedMembers.push(barFactory.reduce($scope.dimensions[j], "members"));			
-					}
-					
+
 					var selected = $scope.reduced[index];
-					var selectedFunds = reducedFunds[index];
-					var selectedMembers = reducedMembers[index];
-			
+
 					div.transition()		
 						.duration(200)		
 						.style("opacity", .9);		
-					//div.html("Category: " + reduced[i].key + "<br/>" + "Members: " + reduced[i].value)
-					// doesn't matter which we select for key, since they'll both be the same
-					//console.log("cat: " + selected[i].key + " dog: " + selected[i].value);
-					console.log("category: " + selectedFunds[i].key);
-					console.log("members: " + selectedMembers[i].value);
-					console.log("funds: " + selectedFunds[i].value);
-					div.html(" Category: " + selectedFunds[i].key + "<br/>Members: " + selectedMembers[i].value + "<br/>Funds: " + selectedFunds[i].value)
+					div.html(" Category: " + selected[i].key + "<br/>Members: " + selected[i].value["members"] + "<br/>Funds: " + selected[i].value["funds"])
+					
 					// get this bar's location and place it there?
 						.style("left", 100 + "px")		
-						.style("top", 100 + "px");	
+						.style("top", yScale(categories[i]) + 110 + "px");	
 					})					
 				.on("mouseout", function(d) {		
 					div.transition()		
@@ -255,6 +233,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 					
 				
 					var currentDimension = $scope.dimensions[index];
+					
 					
 					//filter current dimension on selected key
 					currentDimension.filter(reducedData[i].key);
@@ -273,7 +252,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 
 
 						for(var k = 0; k < $scope.reduced[j].length; k++){
-							currentData[k] = reduced[k].value;
+							currentData[k] = reduced[k].value[$scope.selected];
 						}
 						
 						// To tell which chart is filtered on what, working on getting this working (well) still...
@@ -310,50 +289,14 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 		
 		console.log("Changing chart X axis to " + $scope.selected);
 		
-		// create temp crossfilter + dimensions to get original max of Nth domain (selected)
-		// (without worrying about filtered data)
-		var tempcf = crossfilter($scope.data);
-		var tempDimensions = [];
-		var tempReduced = [];
-		//var newReduced = [];
-		for(var i = 0; i < $scope.attributes.length; i++) {	
-		
-			var dimension = tempcf.dimension(function(p) { return p[$scope.attributes[i]]; });
-
-			tempDimensions.push(dimension);
-		//	newReduced.push(barFactory.reduce($scope.dimensions[i], $scope.selected));
-			tempReduced.push(barFactory.reduce(tempDimensions[i], $scope.selected));
-			$scope.reduced[i] = barFactory.reduce($scope.dimensions[i], $scope.selected);
-		}
-	
-		var temp = [];
-		for(i = 0; i < $scope.attributes.length; i++) {
-			var current = tempReduced[i];
-			for(j = 0; j < current.length; j++) {
-				temp.push(current[j].value);
-			}
-		}
-		
-		console.log(temp);
-		
-		// get max X
-		domainMax = d3.max(temp, function(d) {
-			return d;
-		});
-		// round to nearest 50
-		var domainMaxRounded = Math.ceil(domainMax / 50) * 50;
-		console.log("max = " + domainMax + " rounded up = " + domainMaxRounded);
-		
-			
+		// change xScale
 		var xScale = d3.scaleLinear()
 			.range([0, width])
-			.domain([0, domainMaxRounded]);
+			.domain([0, domainMaxRounded[$scope.selected]]);
 		$scope.xScale = xScale;
-		/*svg.append("g")
-					 .attr("class", "xaxis")
-					 .attr("transform", "translate(0,470)")
-					 .call(xAxis);*/
-
+		
+	
+		// set data to selected
 		for(i = 0; i < $scope.attributes.length; i++) {
 			var currentData = $scope.reduced[i];
 			var idToSelect = "#" + $scope.attributes[i];
@@ -366,7 +309,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				.call(xAxis);
 				
 				d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
-					.data(barFactory.cleanData(currentData))
+					.data(barFactory.cleanData(currentData, $scope.selected))
 						.transition()
 						.duration(1000)
 					.style("fill", "black")						
@@ -376,10 +319,10 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	}
 	
 
-	// call private init function with update chart specified 
+	// call private init function with update chart boolean specified 
 	$scope.reset = function()
 	{
-		// call init with updateChart boolean set to true
+		// call init with update chart boolean set to true
 		init(true); 
 	}
 	
