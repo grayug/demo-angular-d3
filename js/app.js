@@ -28,10 +28,16 @@ app.config(function ($routeProvider) {
 			controller: 'FourBarsController',
 			templateUrl: 'views/fourbars.html'
 		})
+		.when('/worldclocks', {
+			controller: 'WorldClocksController',
+			templateUrl: 'views/worldclocks.html'
+		})
 		.otherwise({
 			redirectTo: 'views/product.html'
 		});
 });
+
+app.constant("moment", moment);
 
 
 app.factory('barFactory', function() {

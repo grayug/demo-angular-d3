@@ -260,6 +260,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 														
 					// set all chart's data to volume of selected bar
 					var currentData = [];
+					$scope.$evalAsync(function() { 
 					for(var j = 0; j < $scope.attributes.length; j++) {
 						
 						var idToSelect = "#" + $scope.attributes[j];
@@ -298,6 +299,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 							.attr("width", function(d) {return $scope.xScale(d); });
 
 				}
+					});
 				console.log("--------------------------------");
 			});			
 	}
