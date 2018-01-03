@@ -41,6 +41,19 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	$scope.domains = ["members", "funds"];
 	$scope.data;
 	
+	$scope.$watch('filteredOn', function(newValue, oldValue) {
+			console.log("In $watch!");
+			console.log(newValue);
+			
+	}, true);
+	
+	/*$scope.$broadcast('filteredOn', value);
+	
+	$scope.$on('filteredOn', function(event,value) {
+		console.log("In on!");
+		$scope.filteredOn = value;
+	}); */
+	
 	//$scope.fourBarsInit = function() {
 	var init = function(updateChart) {
 		
@@ -59,6 +72,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			$scope.dimensions.length = 0;
 			$scope.reduced.length = 0;
 			$scope.ifLoaded = false;
+			$scope.selected = "funds";
 			
 			$scope.data = data.data;
 			var cf = crossfilter($scope.data);
@@ -107,7 +121,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			
 			$scope.domainMax = [];
 			$scope.domainMaxRounded = [];
-			
+
 			
 			for(var j = 0; j < $scope.domains.length; j++) {
 				
@@ -123,11 +137,22 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			console.log(domainMax);
 			console.log(domainMaxRounded);
 			
+			var xScale = d3.scaleLinear()
+				.range([0, width])
+				.domain([0, domainMaxRounded[$scope.selected]]);
+			$scope.xScale = xScale;
+			
 			for(i = 0; i < $scope.attributes.length; i++) {
 				if(updateChart) {
 					var currentData = $scope.reduced[i];
 					var data = barFactory.cleanData(currentData, $scope.selected);
 					var idToSelect = "#" + $scope.attributes[i];
+					var xAxis = d3.axisBottom(xScale).tickSize(1).tickSizeInner(-height);;
+					d3.select(idToSelect).selectAll("svg").select(".xaxis")
+						.transition()
+						.duration(1000)
+						//.attr("transform", "translate(0,470)")
+						.call(xAxis);
 					d3.select(idToSelect).selectAll("svg").selectAll("rect.bar")
 						.data(data)
 							.transition()
@@ -158,11 +183,6 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 			//console.log($scope.reduced[index]);
 			var reducedData = $scope.reduced[index];
 			
-				
-			var xScale = d3.scaleLinear()
-				.range([0, width])
-				.domain([0, domainMaxRounded[$scope.selected]]);
-			$scope.xScale = xScale;
 
 			var yScale = d3.scaleBand()
 				.rangeRound([height, 0])
@@ -172,7 +192,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				
 			var idString = "#" + $scope.attributes[index];
 			// get empty chart
-			var svg = barFactory.drawBarChart_old(idString, margin, width, height, xScale, yScale);
+			var svg = barFactory.drawBarChart_old(idString, margin, width, height, $scope.xScale, yScale);
 			//console.log(svg);
 			
 			// make clean data function in factory, pass in reduced[index]
@@ -207,7 +227,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 				.attr("x", 0)
 				.style("fill", "black")
 				.attr("width", function (d, i) {
-					return xScale(cleanedData[i]);
+					return $scope.xScale(cleanedData[i]);
 				})
 				.on("mouseover", function(d, i) {		
 
@@ -261,6 +281,8 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 							$scope.filteredOn[j] += " " + $scope.attributes[index] + "(" + reducedData[i].key + ");";
 						}
 						console.log("filtered on: " + $scope.filteredOn);
+						
+						//$scope.test();
 
 
 						for(var k = 0; k < currentData.length; k++){
@@ -281,7 +303,7 @@ app.controller('FourBarsController', ['$scope', 'barFactory', function($scope, b
 	}
 	
 	$scope.test = function() {
-		console.log("test");
+		//console.log("test");
 	}
 	
 	// on radio button change
