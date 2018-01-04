@@ -3,7 +3,7 @@ app.controller('WorldClocksController', ['$scope', function($scope){
 	$scope.date = new moment();
 	
 	$scope.date = moment.tz("America/Los_Angeles").format('hh:mm a');
-	$scope.dates = [];
+	$scope.times = [];
 	//{members: 0, funds: 0};
 	$scope.cities = [
 					{key: "New York, New York", value: "America/New_York"}, 
@@ -21,8 +21,8 @@ app.controller('WorldClocksController', ['$scope', function($scope){
 	var init = function() {
 		
 		for(var i = 0; i < $scope.cities.length; i++) {
-			console.log($scope.cities[i].key + " " + $scope.cities[i].value);
-			$scope.dates.push(moment.tz($scope.cities[i].value).format("hh:mm a"));
+			console.log("init: " + $scope.cities[i].key + " " + $scope.cities[i].value);
+			$scope.times.push(moment.tz($scope.cities[i].value).format("hh:mm a"));
 		}
 		
 		//$scope.dates.push(moment.tz(new moment(), "America/Sao_Paulo").utc().format("YYYY-MM-DD HH:mm:ss");
@@ -58,7 +58,7 @@ app.controller('WorldClocksController', ['$scope', function($scope){
 		
 		$scope.$evalAsync(function() { 
 			for(var i= 0 ; i < $scope.cities.length; i++) {
-				$scope.dates[i] = moment.tz($scope.cities[i].value).format(formatString); //$scope.dates[i].format(formatString);
+				$scope.times[i] = moment.tz($scope.cities[i].value).format(formatString); //$scope.dates[i].format(formatString);
 			}
 		});
 	}
