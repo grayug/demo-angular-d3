@@ -1,6 +1,22 @@
 <p>worldclocks.html</p>
 
 <div>
-<h1>{{date}}</h1>
+
+	<md-switch ng-model="addDate" ng-change="update()" ng-cloak>
+		addDate: {{ addDate }}
+	</md-switch>
+	
+	<md-switch ng-model="addSeconds" ng-change="update()" ng-cloak>
+		addSeconds: {{ addSeconds }}
+	</md-switch>
+
+	<md-switch ng-model="twentyfourHourClock" ng-change="update()" ng-cloak>
+		twentyfourHourClock: {{ twentyfourHourClock }}
+	</md-switch>
+
+
+<div ng-repeat="time in cities">
+	<p class="main">{{time.key}}: {{dates[$index]}}</p>
+</div>
 
 </div>
