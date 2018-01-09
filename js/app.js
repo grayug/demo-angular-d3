@@ -32,6 +32,10 @@ app.config(function ($routeProvider) {
 			controller: 'WorldClocksController',
 			templateUrl: 'views/worldclocks.html'
 		})
+		.when('/teamtracker', {
+			controller: 'TeamTrackerController',
+			templateUrl: 'views/teamtracker.html'
+		})
 		.otherwise({
 			redirectTo: 'views/product.html'
 		});

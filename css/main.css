@@ -40,6 +40,19 @@ html, body {
 	cursor: pointer;
 }
 
+.bar-data-issue {
+	color: #CC0000;
+}
+
+.bar-data-on-schedule {
+	color: #669900;
+}
+
+.bar-idle {
+	color: #ffbb33;
+}
+
+
  .reset {
    background: #F65A5B ;
  color: #fff;
