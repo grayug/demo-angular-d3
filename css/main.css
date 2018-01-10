@@ -49,7 +49,8 @@ html, body {
 }
 
 .bar-idle {
-	color: #ffbb33;
+	fill: ffbb33;
+	/*color: #ffbb33;*/
 }
 
 

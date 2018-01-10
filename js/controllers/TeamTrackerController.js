@@ -2,13 +2,32 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 	
 	$scope.test = "teamtracker.html";
 	
+	/* chart 24 hours start -> end */
+	 var start = new Date("Wed Jan 10 7:00 CST 2018");
+	 var end = new Date("Thu Jan 11 7:00 CST 2018");
+	
 	// plan and run types, create new data style
 	var data = [
-	{"name": "Matt", "startTime":new Date("Tue Jan 09 07:30:00 EST 2018"), "endTime": new Date("Tue Jan 09 10:30:00 EST 2018"), "taskName":"get coffee", "status":"RUNNING"} ];
+		{"name": "Brian", "startTime":new Date("Wed Jan 10 5:00 CST 2018"), "endTime": new Date("Wed Jan 10 12:00 CST 2018"), "status":"RUNNING"},
+		{"name": "Brian", "startTime":new Date("Wed Jan 10 13:00 CST 2018"), "endTime": new Date("Thu Jan 11 1:00 CST 2018"), "status":"MAINTENANCE"},
+	
+		{"name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
+		
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 7:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"RUNNING"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 9:00 CST 2018"), "endTime": new Date("Wed Jan 10 12:45 CST 2018"), "status":"MAINTENANCE"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 13:00 CST 2018"), "endTime": new Date("Thu Jan 11 5:00 CST 2018"), "status":"NOT_STARTED"},
+	];
 
-	// { {"name":"plan", ... }}
+	// TODO redo dataset, where each object has both a plan and a run { {"name":"plan", ... }}
 	
-	
+	var taskStatus = {
+    "NOT_STARTED" : "black",
+    "JAMMED" : "red",
+    "RUNNING" : "green",
+    "MAINTENANCE" : "yellow"
+};
+
+	var tasknames = ["AJ", "Brian", "Nina"];
 	var init = function() {
 		$scope.drawChart();
 	}
@@ -18,50 +37,38 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 	
 	$scope.drawChart = function() { 
 		console.log("in drawChart");
-		var taskNames = [ "Hello" ];
-		var gantt = d3.gantt().taskTypes(taskNames).taskStatus(taskStatus);
-		gantt(tasks);
+		//var taskNames = [ "Hello" ];
+		var gantt = d3.gantt().taskTypes(tasknames).taskStatus(taskStatus).width(800).height(450);
+		gantt(data);
 		
-	
-		var width = 960 - margin.left - margin.right;
-		var height = 500 - margin.top - margin.bottom;
-		var test = d3.gantt(height).width(width).taskTypes(taskNames);
-			
-		var svg = d3.select("body").selectAll("svg")
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom)
-				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-				
+		gantt.timeDomain([ d3.timeDay.offset(start, end)]);
 		
 	}
 	
-	$scope.gantt = function () {
-		
-		
-	}
-	
-	
-	init();
-	
-}]);
+	// gantt 
 
+d3.gantt = function() {
+	
+	var FIT_TIME_DOMAIN_MODE = "fit";
+	var FIXED_TIME_DOMAIN_MODE = "fixed";
 
-// gantt 
-
-var d3.gantt = function() {
 	var margin = {
-	top : 20,
-	right : 40,
-	bottom : 20,
-	left : 150
+		top : 20,
+		right : 40,
+		bottom : 20,
+		left : 150
 	};
 	
-	var timeDomainStart =d3.timeDay.offset(new Date(),+7);
-	var timeDomainEnd d3.timeHour.offset(new Date(), +3);
-	var timeDomainMode = "fit";
+	var timeDomainStart = d3.timeDay.offset(new Date(),-3);
+	var timeDomainEnd = d3.timeHour.offset(new Date(), +3);
+	var timeDomainMode = "fixed";
+	var taskTypes = [];
+	var taskStatus = [];
+	var height = document.body.clientHeight - margin.top - margin.bottom-5;
+	var width = document.body.clientWidth - margin.right - margin.left-5;
 	
 	// define task types/bar color (status)
+
 	
 	var tickFormat = "%H:%M";
 	
@@ -69,30 +76,60 @@ var d3.gantt = function() {
 		return d.startTime + d.name + d.endTime;
 	};
 	
+	var rectTransform = function(d) {
+		return "translate(" + x(d.startTime) + "," + y(d.name) + ")";
+	};
+
+	
 	var x,y,xAxis,yAxis;
 	
 	// blah
+	initAxis();
 	
 	var initTimeDomain = function() {
+		if (timeDomainMode === FIT_TIME_DOMAIN_MODE) {
+		  if (data === undefined || data.length < 1) {
+			timeDomainStart = d3.timeDay.offset(new Date(), -3);
+			timeDomainEnd = d3.timeHour.offset(new Date(), +3);
+			return;
+		  }
+		  
+		  data.sort(function(a, b) {
+			return a.endTime - b.endTime;
+		  });
+		  
+		  timeDomainEnd = end;
+		 
+		 data.sort(function(a, b) {
+			return a.startTime - b.startTime;
+		  });
+		  
+		timeDomainStart = start;
+    }
 		
+		
+		timeDomainStart = data[0].startTime;
+		timeDomainEnd = data[data.length - 1].endTime;
 	}
 	
 	
 	 function initAxis() {
-		x = d3.scaleTime().domain([ timeDomainStart, timeDomainEnd ]).range([ 0, width ]).clamp(true);
+		 // pick date here
+		 
+		x = d3.scaleTime().domain([ start, end ]).range([ 0, width ]).clamp(true);
 
 		y = d3.scaleBand().domain(taskTypes).range([ 0, height - margin.top - margin.bottom ]).padding(0.1);
 
 		xAxis = d3.axisBottom().scale(x).tickFormat(d3.timeFormat(tickFormat))
-		  .tickSize(8).tickPadding(8);
+		  .ticks(24);
 
 		yAxis = d3.axisLeft().scale(y).tickSize(0);
-	  };
+	  }
 	  
 	  function gantt(task) {
 		  
-		  initTimeDomain;
-		  initAxis;
+		  initTimeDomain();
+		  initAxis();
 		  
 		  var svg = d3.select("body").selectAll("svg")
 			.attr("class", "chart")
@@ -105,19 +142,24 @@ var d3.gantt = function() {
 			.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
 			svg.selectAll(".chart")
-			.data(tasks, keyFunction).enter()
+			.data(data, keyFunction).enter()
 			.append("rect")
 			.attr("rx", 5)
 			.attr("ry", 5)
-			.attr("class", function(d){ 
-			if(taskStatus[d.status] == null){ return "bar";}
-			return taskStatus[d.status];
-			}) 
+			.style("fill", function(d) {
+				if(taskStatus[d.status] == null) { return "black"; }
+				return taskStatus[d.status];
+			})
+		/*	.attr("class", function(d){ 
+				if(taskStatus[d.status] == null){ return "bar";}
+				console.log(taskStatus[d.status]);
+				return taskStatus[d.status];
+			}) */
 			.attr("y", 0)
 			.attr("transform", rectTransform)
 			.attr("height", function(d) { return 70; })
 			.attr("width", function(d) { 
-			return (x(d.endDate) - x(d.startDate)); 
+			return (x(d.endTime) - x(d.startTime)); 
 			});
 
 			svg.append("g")
@@ -130,8 +172,85 @@ var d3.gantt = function() {
 
 			return gantt;
 	  }
+	  
+	 gantt.margin = function(value) {
+		if (!arguments.length)
+		  return margin;
+		margin = value;
+		return gantt;
+	  };
+
+	  gantt.timeDomain = function(value) {
+		if (!arguments.length)
+		  return [ timeDomainStart, timeDomainEnd ];
+		timeDomainStart = +value[0], timeDomainEnd = +value[1];
+		return gantt;
+	  };
+
+		/**
+	  * @param {string}
+	  *                vale The value can be "fit" - the domain fits the data or
+	  *                "fixed" - fixed domain.
+	  */
+	  gantt.timeDomainMode = function(value) {
+		if (!arguments.length)
+		  return timeDomainMode;
+		timeDomainMode = value;
+		return gantt;
+
+	  };
+
+	  gantt.taskTypes = function(value) {
+		if (!arguments.length)
+		  return taskTypes;
+		taskTypes = value;
+		return gantt;
+	  };
+
+	  gantt.taskStatus = function(value) {
+		if (!arguments.length)
+		  return taskStatus;
+		taskStatus = value;
+		return gantt;
+	  };
+
+	  gantt.width = function(value) {
+		if (!arguments.length)
+		  return width;
+		width = +value;
+		return gantt;
+	  };
+
+	  gantt.height = function(value) {
+		if (!arguments.length)
+		  return height;
+		height = +value;
+		return gantt;
+	  };
+
+	  gantt.tickFormat = function(value) {
+		if (!arguments.length)
+		  return tickFormat;
+		tickFormat = value;
+		return gantt;
+	  };
+
+	  return gantt;		  
 		  
-		  
-	  }
+  }
+	
+	$scope.gantt = function () {
 		
-}
+		
+	}
+	
+	
+	
+	
+	init();
+	
+}]);
+
+
+
+		
