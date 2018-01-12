@@ -2,23 +2,10 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 	
 	$scope.test = "teamtracker.html";
 	
-	/* chart 24 hours start -> end */
+	/* day of the chart */
 	 var start = new Date("Wed Jan 10 7:00 CST 2018");
 	 var end = new Date("Thu Jan 11 7:00 CST 2018");
 
-
-	
-	// plan and run types, create new data style
-	var data = [
-		{"type":"plan", "name":"Brian", "startTime":new Date("Wed Jan 10 5:00 CST 2018"), "endTime": new Date("Wed Jan 10 12:00 CST 2018"), "status":"RUNNING"},
-		{"type":"actual", "name":"Brian", "startTime":new Date("Wed Jan 10 9:00 CST 2018"), "endTime": new Date("Wed Jan 10 16:00 CST 2018"), "status":"RUNNING"},
-
-		{"type":"plan", "name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
-		{"type":"actual", "name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
-
-		{"type":"plan", "name": "Nina", "startTime":new Date("Wed Jan 10 7:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"RUNNING" },
-		{"type":"actual", "name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"JAMMED"}
-	];
 
     // todo extend dataset
 	var planData = [
@@ -26,6 +13,7 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 		{"name": "AJ", "startTime":new Date("Wed Jan 10 7:15 CST 2018"), "endTime": new Date("Wed Jan 10 10:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
 		{"name": "Nina", "startTime":new Date("Wed Jan 10 7:15 CST 2018"), "endTime": new Date("Wed Jan 10 9:45 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
         {"name": "AJ", "startTime":new Date("Wed Jan 10 18:00 CST 2018"), "endTime": new Date("Thu Jan 11 1:30 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
+        {"name":"Brian", "startTime":new Date("Thu Jan 11 4:00 CST 2018"), "endTime": new Date("Thu Jan 11 7:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
         {"name": "Nina", "startTime":new Date("Wed Jan 10 18:30 CST 2018"), "endTime": new Date("Thu Jan 11 6:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"}
 	];
 
@@ -34,6 +22,7 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 		{"name": "AJ", "startTime":new Date("Wed Jan 10 7:45 CST 2018"), "endTime": new Date("Wed Jan 10 10:00 CST 2018"), "status":"JAMMED", "task":"Get Coffee"},
 		{"name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 11:45 CST 2018"), "status":"JAMMED", "task":"Get Coffee"},
         {"name": "AJ", "startTime":new Date("Wed Jan 10 17:45 CST 2018"), "endTime": new Date("Thu Jan 11 1:00 CST 2018"), "status":"RUNNING", "task":"Get Coffee"},
+        {"name":"Brian", "startTime":new Date("Thu Jan 11 4:00 CST 2018"), "endTime": new Date("Thu Jan 11 7:00 CST 2018"), "status":"JAMMED", "task":"Get Coffee"},
         {"name": "Nina", "startTime":new Date("Wed Jan 10 18:30 CST 2018"), "endTime": new Date("Thu Jan 11 6:00 CST 2018"), "status":"RUNNING", "task":"Get Coffee"}
 	];
     
@@ -64,7 +53,6 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 		gantt.timeDomain([ d3.timeDay.offset(start, end)]);
 	}
 	
-	// gantt 
 
 d3.gantt = function() {
 	
@@ -81,7 +69,6 @@ d3.gantt = function() {
 	var timeDomainStart = d3.timeDay.offset(new Date(),-3);
 	var timeDomainEnd = d3.timeHour.offset(new Date(), +3);
 	var timeDomainMode = "fixed";
-	var taskTypes = [];
 	var taskNames = [];
 	var taskStatus = [];
 	var height = document.body.clientHeight - margin.top - margin.bottom-5;
@@ -96,6 +83,7 @@ d3.gantt = function() {
 	}
 	
 	var rectTransform = function(d) {
+        console.log("y of " + d.name + " is " +y(d.name));
 		return "translate(" + x(d.startTime) + "," + y(d.name) + ")";
 	};
 
@@ -121,23 +109,23 @@ d3.gantt = function() {
 		y = d3.scaleBand().domain(taskNames)
 	 		.range([ 0, height - margin.top - margin.bottom ]).padding(0.1);
 
-		 // todo, lines like in the picture
+         // previously for lines, using tickSize on yAxis instead
         yLines = d3.scaleBand().domain(taskNames).range([0, height - margin.top - margin.bottom+30]).padding(0.1);
 
 		xAxis = d3.axisBottom().scale(x).tickFormat(d3.timeFormat(tickFormat))
 		  .ticks(24);
 
-		yAxis = d3.axisLeft().scale(y).tickSize(0);
+		yAxis = d3.axisLeft().scale(y).tickSize(-width);
 
-       // yAxisLines = d3.axisLeft().scale(yLines).tickSize(-width).tickFormat("");
+        yAxisLines = d3.axisLeft(y).tickSize(-width).tickFormat("");
 	  }
 	  
 	  function gantt(plan, actual) {
 		  
 		  initTimeDomain();
 		  initAxis();
-          var yOffset = 30;
-          var yPadding = 40;
+          var yOffset = 65;
+          var yPadding = 35;
 		  
 		  var svg = d3.select("body").selectAll("svg")
 			.attr("class", "chart")
@@ -149,6 +137,7 @@ d3.gantt = function() {
 			.attr("height", height + margin.top + margin.bottom)
 			.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
+          /** 'plan' data */
 			svg.selectAll(".chart-plan")
 			.data(plan, keyFunction)
 				.enter()
@@ -165,6 +154,7 @@ d3.gantt = function() {
 				return  (x(d.endTime) - x(d.startTime));
 			})
 
+          /** 'actual' data */
 		  	svg.selectAll(".chart-actual")
 			.data(actual, keyFunction).enter()
 			.append("rect")
@@ -185,8 +175,7 @@ d3.gantt = function() {
 			});
 
 
-         // var setBarText = function(className, data) {
-              //
+          // 'plan' task text
           var yTextPadding = yOffset + 13;//20;
           svg.selectAll(".plan-bar-text")
               .data(plan)
@@ -209,6 +198,7 @@ d3.gantt = function() {
               });
 
 
+          // 'actual' task text
           yTextPadding = yOffset + 17;
           svg.selectAll(".actual-bar-text")
               .data(actual)
@@ -222,15 +212,11 @@ d3.gantt = function() {
               })
               .attr("y", function(d) {
                   return y(d.name)+yTextPadding+yPadding;
-                  //       return height-y(d)+yTextPadding;
               })
               .text(function(d){
-                  // check if width is long enough for d.task in px
+                  // should check if width is long enough for d.task in px
                   return d.task;
               });
-          // no x,y needed I think
-          //setBarText(".plan-bar-text");
-         // setBarText(".actual-bar-text");
 
 
 		  	svg.append("g")
@@ -239,34 +225,13 @@ d3.gantt = function() {
 			.transition()
 			.call(xAxis);
 
-			svg.append("g").attr("class", "y axis").transition().call(yAxis);
-           // svg.append("g").attr("class", "y axis lines").transition().call(yAxisLines);
+     //       svg.append("g").attr("class", "grid_y").call(yAxisLines);
+            svg.append("g").attr("class", "y axis").transition().call(yAxis);
+
 
 			return gantt;
 	  }
 
-	  var setBarText = function(svg, className, data, x, y) {
-          //
-          var yTextPadding = 20;
-          svg.selectAll(className)
-              .data(data)
-              .enter()
-              .append("text")
-              .attr("class", "bartext")
-              .attr("text-anchor", "middle")
-              .attr("fill", "black")
-              .attr("x", function(d, i) {
-                  return x(d.startTime) + (x(d.endTime - d.startTime) / 2);
-              })
-              .attr("y", function(d,i) {
-                  return height-y(d)+yTextPadding;
-                  //       return height-y(d)+yTextPadding;
-              })
-              .text(function(d){
-                  return d.task;
-              });
-      }
-	  
 	 gantt.margin = function(value) {
 		if (!arguments.length)
 		  return margin;
@@ -307,13 +272,6 @@ d3.gantt = function() {
 		taskStatus = value;
 		return gantt;
 	  };
-
-	  gantt.taskTypes = function(value) {
-		if (!arguments.length)
-			return taskTypes;
-		  taskTypes = value;
-		return gantt;
-		};
 
 	  gantt.width = function(value) {
 		if (!arguments.length)
