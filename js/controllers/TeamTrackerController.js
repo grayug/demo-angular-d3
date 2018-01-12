@@ -20,23 +20,29 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 		{"type":"actual", "name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"JAMMED"}
 	];
 
+    // todo extend dataset
 	var planData = [
-		{"name":"Brian", "startTime":new Date("Wed Jan 10 5:00 CST 2018"), "endTime": new Date("Wed Jan 10 12:00 CST 2018"), "status":"RUNNING"},
-		{"name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
-		{"name": "Nina", "startTime":new Date("Wed Jan 10 7:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"RUNNING" }
+		{"name":"Brian", "startTime":new Date("Wed Jan 10 5:00 CST 2018"), "endTime": new Date("Wed Jan 10 18:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
+		{"name": "AJ", "startTime":new Date("Wed Jan 10 7:15 CST 2018"), "endTime": new Date("Wed Jan 10 10:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 7:15 CST 2018"), "endTime": new Date("Wed Jan 10 9:45 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
+        {"name": "AJ", "startTime":new Date("Wed Jan 10 18:00 CST 2018"), "endTime": new Date("Thu Jan 11 1:30 CST 2018"), "status":"PLAN", "task":"Get Coffee"},
+        {"name": "Nina", "startTime":new Date("Wed Jan 10 18:30 CST 2018"), "endTime": new Date("Thu Jan 11 6:00 CST 2018"), "status":"PLAN", "task":"Get Coffee"}
 	];
 
 	var actualData = [
-		{"name":"Brian", "startTime":new Date("Wed Jan 10 9:00 CST 2018"), "endTime": new Date("Wed Jan 10 16:00 CST 2018"), "status":"MAINTENANCE"},
-		{"name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
-		{"name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 11:45 CST 2018"), "status":"JAMMED"}
+		{"name":"Brian", "startTime":new Date("Wed Jan 10 9:00 CST 2018"), "endTime": new Date("Wed Jan 10 16:00 CST 2018"), "status":"MAINTENANCE", "task":"Get Coffee"},
+		{"name": "AJ", "startTime":new Date("Wed Jan 10 7:45 CST 2018"), "endTime": new Date("Wed Jan 10 10:00 CST 2018"), "status":"JAMMED", "task":"Get Coffee"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 11:45 CST 2018"), "status":"JAMMED", "task":"Get Coffee"},
+        {"name": "AJ", "startTime":new Date("Wed Jan 10 17:45 CST 2018"), "endTime": new Date("Thu Jan 11 1:00 CST 2018"), "status":"RUNNING", "task":"Get Coffee"},
+        {"name": "Nina", "startTime":new Date("Wed Jan 10 18:30 CST 2018"), "endTime": new Date("Thu Jan 11 6:00 CST 2018"), "status":"RUNNING", "task":"Get Coffee"}
 	];
     
 	var taskStatus = {
+        "PLAN" : "black",
         "NOT_STARTED" : "black",
         "JAMMED" : "red",
         "RUNNING" : "green",
-        "MAINTENANCE" : "yellow"
+        "MAINTENANCE" : "gold"
 	};
 
 	var tasknames = ["AJ", "Brian", "Nina"];
@@ -130,6 +136,8 @@ d3.gantt = function() {
 		  
 		  initTimeDomain();
 		  initAxis();
+          var yOffset = 30;
+          var yPadding = 40;
 		  
 		  var svg = d3.select("body").selectAll("svg")
 			.attr("class", "chart")
@@ -150,7 +158,7 @@ d3.gantt = function() {
 			.style("fill", function(d) {
 				return taskStatus[d.status];
 			})
-			.attr("y", 30)
+			.attr("y", yOffset)
 			.attr("transform", rectTransform)
 			.attr("height", function(d) { return 20; })
 			.attr("width", function(d) {
@@ -165,16 +173,64 @@ d3.gantt = function() {
 			.style("fill", function(d) {
 				return taskStatus[d.status];
 			})
-
-			// move actual bars down width of bar + padding (20)
-			.attr("y", 70)
+			// move 'actual' bars down
+			.attr("y", yOffset+yPadding)
 			.attr("transform", function(d) {
 				return "translate(" + x(d.startTime) + "," + y(d.name) + ")"
 			})
+                // actual chart is 10px thicker
 			.attr("height", function(d) { return 30; })
 			.attr("width", function(d) {
 				return (x(d.endTime) - x(d.startTime));
 			});
+
+
+         // var setBarText = function(className, data) {
+              //
+          var yTextPadding = yOffset + 13;//20;
+          svg.selectAll(".plan-bar-text")
+              .data(plan)
+              .enter()
+              .append("text")
+              .attr("class", "bartext")
+              .attr("text-anchor", "middle")
+              .attr("fill", "white")
+              .attr("x", function(d) {
+                  console.log(d);
+                  return x(d.startTime) + ((x(d.endTime) - x(d.startTime))/2);
+              })
+              .attr("y", function(d) {
+                  return y(d.name)+yTextPadding;
+                  //       return height-y(d)+yTextPadding;
+              })
+              .text(function(d){
+                  // check if width is long enough for d.task in px
+                  return d.task;
+              });
+
+
+          yTextPadding = yOffset + 17;
+          svg.selectAll(".actual-bar-text")
+              .data(actual)
+              .enter()
+              .append("text")
+              .attr("class", "bartext")
+              .attr("text-anchor", "middle")
+              .attr("fill", "white")
+              .attr("x", function(d) {
+                  return x(d.startTime) + ((x(d.endTime) - x(d.startTime))/2);
+              })
+              .attr("y", function(d) {
+                  return y(d.name)+yTextPadding+yPadding;
+                  //       return height-y(d)+yTextPadding;
+              })
+              .text(function(d){
+                  // check if width is long enough for d.task in px
+                  return d.task;
+              });
+          // no x,y needed I think
+          //setBarText(".plan-bar-text");
+         // setBarText(".actual-bar-text");
 
 
 		  	svg.append("g")
@@ -188,6 +244,28 @@ d3.gantt = function() {
 
 			return gantt;
 	  }
+
+	  var setBarText = function(svg, className, data, x, y) {
+          //
+          var yTextPadding = 20;
+          svg.selectAll(className)
+              .data(data)
+              .enter()
+              .append("text")
+              .attr("class", "bartext")
+              .attr("text-anchor", "middle")
+              .attr("fill", "black")
+              .attr("x", function(d, i) {
+                  return x(d.startTime) + (x(d.endTime - d.startTime) / 2);
+              })
+              .attr("y", function(d,i) {
+                  return height-y(d)+yTextPadding;
+                  //       return height-y(d)+yTextPadding;
+              })
+              .text(function(d){
+                  return d.task;
+              });
+      }
 	  
 	 gantt.margin = function(value) {
 		if (!arguments.length)
