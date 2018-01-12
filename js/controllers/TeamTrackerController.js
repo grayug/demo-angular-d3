@@ -19,6 +19,18 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 		{"type":"plan", "name": "Nina", "startTime":new Date("Wed Jan 10 7:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"RUNNING" },
 		{"type":"actual", "name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"JAMMED"}
 	];
+
+	var planData = [
+		{"name":"Brian", "startTime":new Date("Wed Jan 10 5:00 CST 2018"), "endTime": new Date("Wed Jan 10 12:00 CST 2018"), "status":"RUNNING"},
+		{"name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 7:30 CST 2018"), "endTime": new Date("Wed Jan 10 8:45 CST 2018"), "status":"RUNNING" }
+	];
+
+	var actualData = [
+		{"name":"Brian", "startTime":new Date("Wed Jan 10 9:00 CST 2018"), "endTime": new Date("Wed Jan 10 16:00 CST 2018"), "status":"MAINTENANCE"},
+		{"name": "AJ", "startTime":new Date("Wed Jan 10 8:00 CST 2018"), "endTime": new Date("Wed Jan 10 9:30 CST 2018"), "status":"JAMMED"},
+		{"name": "Nina", "startTime":new Date("Wed Jan 10 9:30 CST 2018"), "endTime": new Date("Wed Jan 10 11:45 CST 2018"), "status":"JAMMED"}
+	];
     
 	var taskStatus = {
         "NOT_STARTED" : "black",
@@ -39,8 +51,9 @@ app.controller('TeamTrackerController', ['$scope', function($scope){
 	$scope.drawChart = function() { 
 		console.log("in drawChart");
 		//var taskNames = [ "Hello" ];
-		var gantt = d3.gantt().taskNames(tasknames).taskTypes(tasktypes).taskStatus(taskStatus).width(800).height(450);
-		gantt(data);
+		//var gantt = d3.gantt().taskNames(tasknames).taskTypes(tasktypes).taskStatus(taskStatus).width(800).height(450);
+		var gantt = d3.gantt().taskNames(tasknames).taskStatus(taskStatus).width(800).height(450);
+		gantt(planData, actualData);
 		
 		gantt.timeDomain([ d3.timeDay.offset(start, end)]);
 	}
@@ -70,33 +83,13 @@ d3.gantt = function() {
 	
 	// define task types/bar color (status)
 
-	
 	var tickFormat = "%H:%M";
-	
+
 	var keyFunction = function(d) {
-
-
-		return taskTypes.map(function (taskType) {
-			//to get one bar for each variable, start with the
-			//array of variable names, and use a map function
-			//to create data objects for each:
-
-			// type, name, startTime, endTime
-			return {
-				type: taskType,
-				name: d.name,
-				startTime: d[taskType],
-				endTime: d[taskType]
-			};
-
-			for (var i = 0; i < d.length; i++) {
-				return d[i].startTime + d[i].name + d[i].endTime;
-			}
-		});
-	};
+		return d.name + d.startTime + d.endTime;
+	}
 	
 	var rectTransform = function(d) {
-
 		return "translate(" + x(d.startTime) + "," + y(d.name) + ")";
 	};
 
@@ -107,30 +100,7 @@ d3.gantt = function() {
 	initAxis();
 	
 	var initTimeDomain = function() {
-		/*if (timeDomainMode === FIT_TIME_DOMAIN_MODE) {
-		  if (data === undefined || data.length < 1) {
-			timeDomainStart = d3.timeDay.offset(new Date(), -3);
-			timeDomainEnd = d3.timeHour.offset(new Date(), +3);
-			return;
-		  }
-		  
-		  data.sort(function(a, b) {
-			return a.endTime - b.endTime;
-		  });
-		  
-		  timeDomainEnd = end;
-		 
-		 data.sort(function(a, b) {
-			return a.startTime - b.startTime;
-		  });
-		  
-		timeDomainStart = start;
-    }
-		
-		
-		timeDomainStart = data[0].startTime;
-		timeDomainEnd = data[data.length - 1].endTime; */
-
+		/* todo current data starting at 7 ending at 7 am next day? */
 		timeDomainStart = start;
 		timeDomainEnd = end;
 	}
@@ -141,7 +111,9 @@ d3.gantt = function() {
 		 
 		x = d3.scaleTime().domain([ start, end ]).range([ 0, width ]).clamp(true);
 
-		y = d3.scaleBand().domain(taskNames).range([ 0, height - margin.top - margin.bottom ]).padding(0.1);
+		 // domain =
+		y = d3.scaleBand().domain(taskNames)
+	 		.range([ 0, height - margin.top - margin.bottom ]).padding(0.1);
 
 		 // todo, lines like in the picture
         yLines = d3.scaleBand().domain(taskNames).range([0, height - margin.top - margin.bottom+30]).padding(0.1);
@@ -154,7 +126,7 @@ d3.gantt = function() {
        // yAxisLines = d3.axisLeft().scale(yLines).tickSize(-width).tickFormat("");
 	  }
 	  
-	  function gantt(data) {
+	  function gantt(plan, actual) {
 		  
 		  initTimeDomain();
 		  initAxis();
@@ -169,8 +141,8 @@ d3.gantt = function() {
 			.attr("height", height + margin.top + margin.bottom)
 			.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
-			svg.selectAll(".chart")
-			.data(data, keyFunction)
+			svg.selectAll(".chart-plan")
+			.data(plan, keyFunction)
 				.enter()
 			.append("rect")
 			.attr("rx", 5)
@@ -178,42 +150,34 @@ d3.gantt = function() {
 			.style("fill", function(d) {
 				return taskStatus[d.status];
 			})
-			.attr("y", 0)
+			.attr("y", 30)
 			.attr("transform", rectTransform)
-			.attr("height", function(d) { return 40; })
+			.attr("height", function(d) { return 20; })
 			.attr("width", function(d) {
-				// map?
-				return data.map(function(d) { return x(d.endTime) - x(d.startTime); });
-			//	return (x(d.endTime) - x(d.startTime));
+				return  (x(d.endTime) - x(d.startTime));
 			})
 
-		  /*	svg.selectAll(".chart-actual")
+		  	svg.selectAll(".chart-actual")
 			.data(actual, keyFunction).enter()
 			.append("rect")
 			.attr("rx", 5)
 			.attr("ry", 5)
 			.style("fill", function(d) {
-					return taskStatus[d[0].status];
-
-			//	return taskStatus[d.status];
-			})
-                // second style for other rect here
-		/*	.attr("class", function(d){
-				if(taskStatus[d.status] == null){ return "bar";}
-				console.log(taskStatus[d.status]);
 				return taskStatus[d.status];
-			}) */
-			.attr("y", 0)
-			.attr("transform", rectTransform)
-			.attr("height", function(d) { return 40; })
+			})
+
+			// move actual bars down width of bar + padding (20)
+			.attr("y", 70)
+			.attr("transform", function(d) {
+				return "translate(" + x(d.startTime) + "," + y(d.name) + ")"
+			})
+			.attr("height", function(d) { return 30; })
 			.attr("width", function(d) {
-				for(var i = 0; i < d.length; i++) {
-					return (x(d.endTime) - x(d.startTime));
-				}
+				return (x(d.endTime) - x(d.startTime));
 			});
 
 
-			  svg.append("g")
+		  	svg.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0, " + (height - margin.top - margin.bottom) + ")")
 			.transition()
