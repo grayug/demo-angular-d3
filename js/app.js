@@ -36,6 +36,10 @@ app.config(function ($routeProvider) {
 			controller: 'TeamTrackerController',
 			templateUrl: 'views/teamtracker.html'
 		})
+		.when('/groupedbars', {
+			controller: 'GroupedBarsController',
+			templateUrl: 'views/GroupedBars.html'
+		})
 		.otherwise({
 			redirectTo: 'views/product.html'
 		});
